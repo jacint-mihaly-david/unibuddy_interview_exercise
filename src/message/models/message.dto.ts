@@ -177,3 +177,18 @@ export class ReactionDto {
   @Field(() => ObjectID)
   conversationId: ObjectID;
 }
+
+@InputType()
+export class TagDto {
+  @Field(() => ObjectID)
+  id: ObjectID;
+
+  @Field(() => String)
+  type: string;
+
+  @Field(() => ObjectID)
+  messageId: ObjectID;
+
+  @Field(() => ObjectID)
+  conversationId: ObjectID;
+}
