@@ -21,6 +21,7 @@ import {
   LikeMessageDto,
   ResolveMessageDto,
   ReactionDto,
+  TagDto,
 } from './models/message.dto';
 import { MessageLogic } from './message.logic';
 import {
@@ -43,7 +44,7 @@ export class MessageResolver {
     private messageLogic: MessageLogic,
     private safeguardingService: SafeguardingService,
     private chatMessageDataLoader: ChatMessageDataLoader,
-  ) {}
+  ) { }
 
   @UseGuards(GqlAuthGuardForReference)
   @ResolveReference()
@@ -155,6 +156,18 @@ export class MessageResolver {
 
   @Mutation(() => ChatMessage)
   @UseGuards(GqlAuthGuard)
+  async addTagToMessage(
+    @Args('tagDto') tagDto: TagDto,
+    @AuthenticatedUser() authenticatedUser: IAuthenticatedUser,
+  ) {
+    return this.messageLogic.addTagToMessage(
+      tagDto,
+      authenticatedUser,
+    );
+  }
+
+  @Mutation(() => ChatMessage)
+  @UseGuards(GqlAuthGuard)
   async removeReactionFromMessage(
     @Args('reactionDto') reactionDto: ReactionDto,
     @AuthenticatedUser() authenticatedUser: IAuthenticatedUser,
@@ -176,7 +189,7 @@ export class RichMessageContentResolver {
   constructor(
     private chatMessageDataLoader: ChatMessageDataLoader,
     private messageLogic: MessageLogic,
-  ) {}
+  ) { }
 
   @ResolveField('reply', () => ChatMessage, { nullable: true })
   async getReplyMessage(

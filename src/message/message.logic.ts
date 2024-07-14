@@ -13,6 +13,7 @@ import {
   ResolveMessageDto,
   ReactionDto,
   PollOptionDto,
+  TagDto,
 } from './models/message.dto';
 import { MessageData } from './message.data';
 import { IAuthenticatedUser } from '../authentication/jwt.strategy';
@@ -29,6 +30,7 @@ import {
   UnresolveMessageEvent,
   ReactedMessageEvent,
   UnReactedMessageEvent,
+  TaggedMessageEvent,
 } from '../conversation/conversation-channel.socket';
 import { UserService } from '../user/user.service';
 import { ConversationData } from '../conversation/conversation.data';
@@ -47,6 +49,7 @@ import {
   MessageGroupedByConversationOutput,
   MessagesFilterInput,
 } from '../conversation/models/messagesFilterInput';
+import { Tag } from '../conversation/models/CreateChatConversation.dto';
 
 export interface IMessageLogic {
   create(
@@ -231,8 +234,7 @@ export class MessageLogic implements IMessageLogic {
       }))
     ) {
       console.error(
-        `User ${
-          authenticatedUser.userId
+        `User ${authenticatedUser.userId
         } is not authorised to read message ${messageId.toHexString()}`,
       );
       throw new ForbiddenError(`User is not authorised to read this message`);
@@ -313,7 +315,7 @@ export class MessageLogic implements IMessageLogic {
       paginatedChatMessages,
       blockedUserIds,
     );
-  
+
 
     return paginatedChatMessages;
   }
@@ -534,6 +536,35 @@ export class MessageLogic implements IMessageLogic {
     this.conversationChannel.send(
       messageEvent,
       reaction.conversationId.toHexString(),
+    );
+
+    return message;
+  }
+
+  async addTagToMessage(
+    tag: TagDto,
+    authenticatedUser: IAuthenticatedUser,
+  ) {
+    await this.throwForbiddenErrorIfNotAuthorized(
+      authenticatedUser,
+      tag.messageId,
+      Action.readConversation,
+    );
+
+    const message = await this.messageData.addTag(
+      tag.type,
+      authenticatedUser.userId,
+      tag.messageId,
+    );
+
+    const messageEvent = new TaggedMessageEvent({
+      userId: authenticatedUser.userId,
+      messageId: tag.messageId,
+      type: tag.type,
+    });
+    this.conversationChannel.send(
+      messageEvent,
+      tag.conversationId.toHexString(),
     );
 
     return message;

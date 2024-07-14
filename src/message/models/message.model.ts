@@ -173,8 +173,7 @@ export class ChatMessageModel {
 
   @Prop({
     type: [{ id: { type: String }, type: { type: String } }],
-    required: false,
-    default: [],
+    nullable: true,
   })
   tags?: Tag[];
 

@@ -17,7 +17,7 @@ export class MessageData {
   constructor(
     @InjectModel(ChatMessageModel.name)
     protected chatMessageModel: Model<ChatMessageDocument>,
-  ) {}
+  ) { }
 
   async create(
     data: MessageDto,
@@ -212,6 +212,55 @@ export class MessageData {
     if (!updatedResult || updatedResult.matchedCount === 0) {
       throw new Error(
         `Failed to add reaction, messageId: ${messageId.toHexString()}, reaction: ${reaction}, userId: ${userId.toHexString()}`,
+      );
+    }
+
+    return this.getMessage(messageId.toHexString());
+  }
+
+  async addTag(
+    type: string,
+    userId: ObjectID,
+    messageId: ObjectID,
+  ): Promise<ChatMessage> {
+    const updatedResult = await this.chatMessageModel.bulkWrite([
+      {
+        updateOne: {
+          filter: {
+            _id: messageId,
+            tags: {
+              $elemMatch: { type: type },
+            },
+          },
+          update: {
+            $addToSet: { 'reactions.$.userIds': userId },
+          },
+        },
+      },
+      {
+        updateOne: {
+          filter: {
+            _id: messageId,
+            tags: {
+              $not: {
+                $elemMatch: { type: type },
+              },
+            },
+          },
+          update: {
+            $push: {
+              tags: {
+                type: type,
+                userIds: [userId],
+              },
+            },
+          },
+        },
+      },
+    ]);
+    if (!updatedResult || updatedResult.matchedCount === 0) {
+      throw new Error(
+        `Failed to add tag, messageId: ${messageId.toHexString()}, tag type: ${type}, userId: ${userId.toHexString()}`,
       );
     }
 

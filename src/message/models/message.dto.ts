@@ -180,8 +180,6 @@ export class ReactionDto {
 
 @InputType()
 export class TagDto {
-  @Field(() => ObjectID)
-  id: ObjectID;
 
   @Field(() => String)
   type: string;
