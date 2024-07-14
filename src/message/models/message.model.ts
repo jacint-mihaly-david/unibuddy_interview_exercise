@@ -115,6 +115,23 @@ export class Reaction {
   userIds: string[];
 }
 
+export enum TagType {
+  important = 'important',
+  favourite = 'favourite'
+}
+
+@Schema()
+@ObjectType()
+export class Tag {
+  @Prop({ type: String })
+  @Field(() => String, { nullable: false })
+  id: string;
+
+  @Prop({ type: String, enum: TagType })
+  @Field(() => String, { nullable: false })
+  type: TagType;
+}
+
 @Schema()
 export class ChatMessageModel {
   id: ObjectID;
@@ -153,6 +170,13 @@ export class ChatMessageModel {
     nullable: true,
   })
   reactions?: Reaction[];
+
+  @Prop({
+    type: [{ id: { type: String }, type: { type: String } }],
+    required: false,
+    default: [],
+  })
+  tags?: Tag[];
 
   /**
    * All the properties below are virtual properties
